@@ -82,8 +82,8 @@ Java_com_example_myclient_MainActivity_encrypt(
     int rst = dsz % 8;
     int sz = dsz + 8 - rst;
     uint8_t * buf = new uint8_t[sz];
-    for (int i = 7; i > rst; i--)
-        buf[dsz + i] = rst;
+    for (int i = 7; i >= rst; i--)
+        buf[sz - 8 + i] = rst;
     jbyte * pdata = env->GetByteArrayElements(data, 0);
     std::copy(pdata, pdata + dsz, buf);
     mbedtls_des3_set2key_enc(&ctx, (uint8_t *)pkey);
