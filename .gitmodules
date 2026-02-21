@@ -1,3 +1,6 @@
 [submodule "libs/spdlog"]
 	path = libs/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "libs/mbedtls"]
+	path = libs/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
