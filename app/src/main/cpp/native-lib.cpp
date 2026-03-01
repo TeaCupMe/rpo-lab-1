@@ -11,6 +11,7 @@
 #define LOG_INFO(...) __android_log_print(ANDROID_LOG_INFO, "myclient_ndk", __VA_ARGS__)
 
 #define SLOG_INFO(...) android_logger->info( __VA_ARGS__ )
+#define ELOG_INFO(...) android_logger->error( __VA_ARGS__ )
 auto android_logger = spdlog::android_logger_mt("android", "myclient_ndk");
 
 mbedtls_entropy_context entropy;
@@ -58,6 +59,17 @@ Java_com_example_myclient_MainActivity_LogUsingJNI(
         return;
     }
     SLOG_INFO(nativeString);
+    env->ReleaseStringUTFChars(str, nativeString);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_myclient_MainActivity_LogErrorUsingJNI(JNIEnv *env, jclass clazz, jstring str) {
+    const char *nativeString = env->GetStringUTFChars(str, 0);
+    if (nativeString == NULL) {
+        return;
+    }
+    ELOG_INFO(nativeString);
     env->ReleaseStringUTFChars(str, nativeString);
 }
 
