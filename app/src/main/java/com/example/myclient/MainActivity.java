@@ -3,11 +3,16 @@ package com.example.myclient;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.myclient.databinding.ActivityMainBinding;
 
 import java.util.Arrays;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,6 +48,24 @@ public class MainActivity extends AppCompatActivity {
         tv.setText(stringFromJNI());
     }
 
+    public void onButtonClick(View v)
+    {
+        LogUsingJNI("Button clicked");
+        Toast.makeText(this, "Hello", Toast.LENGTH_SHORT).show();
+    }
+    public static byte[] stringToHex(String s)
+    {
+        byte[] hex;
+        try
+        {
+            hex = Hex.decodeHex(s.toCharArray());
+        }
+        catch (DecoderException ex)
+        {
+            hex = null;
+        }
+        return hex;
+    }
     /**
      * A native method that is implemented by the 'myclient' native library,
      * which is packaged with this application.
