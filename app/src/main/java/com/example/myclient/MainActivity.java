@@ -90,29 +90,9 @@ public class MainActivity extends AppCompatActivity implements TransactionEvents
     public void onButtonClick(View v)
     {
         LogUsingJNI("Button clicked");
-//        byte[] key = stringToHex("0123456789ABCDEF0123456789ABCDE0");
-//        byte[] enc = encrypt(key, stringToHex("000000000000000102"));
-//        byte[] dec = decrypt(key, enc);
-//        String s = new String(Hex.encodeHex(dec)).toUpperCase();
-//        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
-//        startActivity(it);
+        byte[] trd = stringToHex("9F0206000000000100");
+        boolean ok = transaction(trd);
 
-//        Intent it = new Intent(this, Pinpad.class);
-//        LogUsingJNI("Launching Pinpad activity");
-//        activityResultLauncher.launch(it);
-
-        new Thread(()-> {
-            try {
-                byte[] trd = stringToHex("9F0206000000000100");
-                boolean ok = transaction(trd);
-                runOnUiThread(()-> {
-                    Toast.makeText(MainActivity.this, ok ? "ok" : "failed", Toast.LENGTH_SHORT).show();
-                });
-
-            } catch (Exception ex) {
-                LogErrorUsingJNI("Error in async thread: " + ex);
-            }
-        }).start();
     }
     public static byte[] stringToHex(String s)
     {
