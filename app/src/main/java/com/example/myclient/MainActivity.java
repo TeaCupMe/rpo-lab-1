@@ -21,7 +21,7 @@ import java.util.Arrays;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TransactionEvents {
 
     // Used to load the 'myclient' library on application startup.
     static {
@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private ActivityMainBinding binding;
+    private String pin;
     ActivityResultLauncher<Intent> activityResultLauncher;
 
     @Override
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                         if (result.getResultCode() == Activity.RESULT_OK) {
                             LogUsingJNI("Activity ended with result code RESULT_OK");
                             Intent data = result.getData();
-                            String pin;
+//                            String pin;
                             if (data == null) {
                                 LogErrorUsingJNI("Failed to retrieve data from activity result");
                                 return;
@@ -75,7 +76,10 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             LogUsingJNI("Pin: " + pin);
-                            Toast.makeText(MainActivity.this, pin, Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(MainActivity.this, pin, Toast.LENGTH_SHORT).show();
+                            synchronized (MainActivity.this) {
+                                MainActivity.this.notifyAll();
+                            }
                         } else {
                             LogErrorUsingJNI("Activity failed with code: " + result.getResultCode());
                         }
@@ -91,10 +95,24 @@ public class MainActivity extends AppCompatActivity {
 //        byte[] dec = decrypt(key, enc);
 //        String s = new String(Hex.encodeHex(dec)).toUpperCase();
 //        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
-        Intent it = new Intent(this, Pinpad.class);
 //        startActivity(it);
-        LogUsingJNI("Launching Pinpad activity");
-        activityResultLauncher.launch(it);
+
+//        Intent it = new Intent(this, Pinpad.class);
+//        LogUsingJNI("Launching Pinpad activity");
+//        activityResultLauncher.launch(it);
+
+        new Thread(()-> {
+            try {
+                byte[] trd = stringToHex("9F0206000000000100");
+                boolean ok = transaction(trd);
+                runOnUiThread(()-> {
+                    Toast.makeText(MainActivity.this, ok ? "ok" : "failed", Toast.LENGTH_SHORT).show();
+                });
+
+            } catch (Exception ex) {
+                LogErrorUsingJNI("Error in async thread: " + ex);
+            }
+        }).start();
     }
     public static byte[] stringToHex(String s)
     {
@@ -109,6 +127,30 @@ public class MainActivity extends AppCompatActivity {
         }
         return hex;
     }
+
+    @Override
+    public String enterPin(int ptc, String amount) {
+        pin = "";
+        Intent it = new Intent(MainActivity.this, Pinpad.class);
+        it.putExtra("ptc", ptc);
+        it.putExtra("amount", amount);
+        synchronized (MainActivity.this) {
+            activityResultLauncher.launch(it);
+            try {
+                MainActivity.this.wait();
+            } catch (Exception ex) {
+                LogErrorUsingJNI("Error in enterPin: " + ex);
+            }
+        }
+        return pin;
+    }
+
+    @Override
+    public void transactionResult(boolean result) {
+        runOnUiThread(()-> {
+            Toast.makeText(MainActivity.this, result ? "ok" : "failed", Toast.LENGTH_SHORT).show();
+        });
+    }
     /**
      * A native method that is implemented by the 'myclient' native library,
      * which is packaged with this application.
@@ -121,4 +163,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static native byte[] encrypt(byte[] key, byte[] data);
     public static native byte[] decrypt(byte[] key, byte[] data);
+
+    public native boolean transaction(byte[] trd);
 }
